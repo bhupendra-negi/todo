@@ -49,13 +49,25 @@ app.post('/todos', function(req, res) {
   res.json("post data pushed");
 });
 
-
+// below method is for deleting any record
+app.delete("/todos/:id", function(req, res) {
+  var todoId = parseInt(req.params.id,10);
+  var matchedTodo = _.findWhere(todos,{id:todoId});
+  if (matchedTodo) {
+    //delete record from array
+    todos = _.without(todos,matchedTodo);
+    res.send("Task deleted for ID :" + todoId);
+  } else {
+    res.status(404).send("This record does not exits");
+  }
+});
 
 
 // different request for todos task listen
-// GET todos/
+// search query parameters
 app.get('/todos', function(req, res) {
   // return json data to request
+
 // filter the request bsaed upon query params
 var queryParams = req.query;
 var filteredtodos = todos;
@@ -63,19 +75,25 @@ var filteredtodos = todos;
 if (queryParams.hasOwnProperty("completed") && queryParams.completed === "true")
 {
   filteredtodos = _.where(todos,{completed:true});
-
 }
 else if ( queryParams.hasOwnProperty("completed") && queryParams.completed === "false" )
 {
   filteredtodos = _.where(todos,{completed:false});
 
 }
-/* {
-  return res.staus(400).send("wrong params to be updated");
-}*/
+else if (queryParams.hasOwnProperty("completed")) {
+  return res.status(400).send("wrong params to be updated");
+}
+if ( queryParams.hasOwnProperty("q") && queryParams.q.trim().length > 0)
+{
+  filteredtodos = _.filter(filteredtodos, function(todo){
+    return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1 ;
+  });
+}
 
   res.json(filteredtodos);
-})
+});
+
 
 // delete request
 app.delete("/todos/:id", function(req, res) {
